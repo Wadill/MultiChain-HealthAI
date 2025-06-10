@@ -1,13 +1,8 @@
-Here's your content formatted as a professional and comprehensive `README.md` file for **MultiChain HealthAI**, suitable for inclusion in your project root:
-
----
-
-````markdown
 # MultiChain HealthAI
 
 A decentralized application (dApp) that computes a wallet health score based on activity, diversification, profitability, and security behaviors across Ethereum, Polygon, and Aptos — with AI-generated explanations for each metric.
 
-Built for the **WaveHack/Buildathon**, MultiChain HealthAI leverages **Nodit’s Web3 Data API** and **Model Context Protocol (MCP)** to deliver an AI-powered, multi-chain wallet analytics platform. The app features a sleek, animated front end using **React**, **TypeScript**, **Tailwind CSS**, and **Framer Motion**, providing an engaging user experience.
+MultiChain HealthAI leverages **Nodit’s Web3 Data API** and **Model Context Protocol (MCP)** to deliver an AI-powered, multi-chain wallet analytics platform. The app features a sleek, animated front end using **React**, **TypeScript**, **Tailwind CSS**, and **Framer Motion**, providing an engaging user experience.
 
 ---
 
@@ -112,7 +107,7 @@ Enables AI-driven score generation using LLMs:
 Clone the repository:
 
 ```bash
-git clone https://github.com/<your-username>/multichain-healthai.git
+git clone https://github.com/Wadill/MultiChain-HealthAI.git
 cd multichain-healthai
 ```
 
@@ -159,15 +154,6 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 
 ---
 
-## 🌐 WaveHack/Buildathon Alignment
-
-* 🔍 **AI + Analytics**: Simulates Nodit MCP-based AI explanations
-* 🔗 **Multi-Chain Support**: Ethereum, Polygon, Aptos
-* 🎯 **Creative UI/UX**: Animated, responsive, modern frontend
-* ⚙️ **Scalability**: Built to support real-time APIs and growth
-* 🧠 **Accessibility**: Simplifies complex wallet data for Web3 users
-
----
 
 ## 🔮 Future Enhancements
 
@@ -208,44 +194,3 @@ Contributions are welcome!
 ## 📜 License
 
 This project is licensed under the [MIT License](LICENSE).
-
----
-
-Built with ❤️ for the **WaveHack/Buildathon** by \[Your Name/Team Name].
-📧 Contact: [your-email@example.com](mailto:your-email@example.com)
-
----
-
-## 🖼️ Screenshots (Optional)
-
-To add visuals, host images (e.g., on Imgur) and include them like:
-
-```markdown
-![Demo](https://i.imgur.com/your-image-link.gif)
-```
-
----
-
-## 📂 Add the README to Your Project
-
-1. Create a file named `README.md` in your project root
-2. Paste this content
-3. Customize placeholders (`<your-username>`, email, name, etc.)
-4. Commit and push:
-
-```bash
-git add README.md
-git commit -m "Add README for MultiChain HealthAI"
-git push origin main
-```
-
----
-
-Need help with deployment, API integration, or visuals? Feel free to ask!
-
-```
-
----
-
-Let me know if you'd like help generating a live preview, demo GIFs, or actual API integration code.
-```
