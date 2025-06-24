@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants, Easing } from 'framer-motion';
 import { HealthScore } from '../types';
 
 interface HealthScoreCardProps {
@@ -7,11 +7,14 @@ interface HealthScoreCardProps {
 }
 
 const HealthScoreCard: React.FC<HealthScoreCardProps> = ({ score }) => {
-  const progressBarVariants = {
+  const progressBarVariants: Variants = {
     hidden: { width: 0 },
     visible: (percentage: number) => ({
       width: `${percentage}%`,
-      transition: { duration: 1, ease: 'easeInOut' },
+      transition: {
+        duration: 1,
+        ease: 'easeInOut' as Easing, // Explicitly type as Easing
+      },
     }),
   };
 
@@ -25,7 +28,9 @@ const HealthScoreCard: React.FC<HealthScoreCardProps> = ({ score }) => {
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Wallet Health Score</h2>
       <div className="space-y-4">
         <div>
-          <p className="text-lg font-semibold">Overall Score: {score.overallScore}/100</p>
+          <p className="text-lg font-semibold">
+            Overall Score: <span>{score.overallScore}/100</span>
+          </p>
           <motion.div
             className="h-4 bg-gray-200 rounded-full overflow-hidden"
             variants={progressBarVariants}
@@ -38,22 +43,18 @@ const HealthScoreCard: React.FC<HealthScoreCardProps> = ({ score }) => {
         </div>
         {['activityScore', 'diversificationScore', 'profitabilityScore', 'securityScore'].map((key) => (
           <div key={key} className="space-y-2">
-            <div>
-              <p className="text-sm font-medium text-gray-700 capitalize">
-                <span>{`${key.replace('Score', '')}: ${score[key as keyof HealthScore]}/100`}</span>
-              </p>
-            </div>
-            <div>
-              <motion.div
-                className="h-2 bg-gray-200 rounded-full overflow-hidden"
-                variants={progressBarVariants}
-                initial="hidden"
-                animate="visible"
-                custom={score[key as keyof HealthScore]}
-              >
-                <div className="h-full bg-blue-500" />
-              </motion.div>
-            </div>
+            <p className="text-sm font-medium text-gray-700 capitalize">
+              <span>{`${key.replace('Score', '')}: ${score[key as keyof HealthScore]}/100`}</span>
+            </p>
+            <motion.div
+              className="h-2 bg-gray-200 rounded-full overflow-hidden"
+              variants={progressBarVariants}
+              initial="hidden"
+              animate="visible"
+              custom={score[key as keyof HealthScore]}
+            >
+              <div className="h-full bg-blue-500" />
+            </motion.div>
           </div>
         ))}
       </div>
