@@ -1,22 +1,11 @@
 export interface WalletData {
   address: string;
   chain: 'Ethereum' | 'Polygon' | 'Aptos';
-  activity: {
-    transactionCount: number;
-    lastActive: string;
-  };
-  diversification: {
-    tokenCount: number;
-    assetTypes: string[];
-  };
-  profitability: {
-    totalProfit: number;
-    roi: number;
-  };
-  security: {
-    suspiciousActivity: boolean;
-    multiSig: boolean;
-  };
+  activity: { transactionCount: number; lastActive: string };
+  diversification: { tokenCount: number; assetTypes: string[]; nftCollections?: string[]; rarityScore?: number };
+  profitability: { totalProfit: number; roi: number };
+  security: { suspiciousActivity: boolean; multiSig: boolean };
+  deFi?: { protocols: string[]; stakedValue: number };
 }
 
 export interface HealthScore {
@@ -25,10 +14,14 @@ export interface HealthScore {
   diversificationScore: number;
   profitabilityScore: number;
   securityScore: number;
+  deFiScore?: number;
+  nftScore?: number;
   explanations: {
     activity: string;
     diversification: string;
     profitability: string;
     security: string;
+    deFi?: string;
+    nft?: string;
   };
 }

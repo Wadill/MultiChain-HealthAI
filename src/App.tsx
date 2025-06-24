@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { jsPDF } from 'jspdf';
 import WalletInput from './components/WalletInput';
 import HealthScoreCard from './components/HealthScoreCard';
 import ExplanationSection from './components/ExplanationSection';
+import HealthPendulum from './components/HealthPendulum';
 import { HealthScore, WalletData } from './types';
 
 const App: React.FC = () => {
-  const [healthScore, setHealthScore] = useState<HealthScore | null>(null);
+  const [healthScores, setHealthScores] = useState<{ address: string; chain: string; score: HealthScore }[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
 
   const calculateHealthScore = (data: WalletData): HealthScore => {
     const transactionCount = data.activity.transactionCount;
@@ -54,11 +59,15 @@ const App: React.FC = () => {
 
   const fetchWalletData = async (address: string, chain: string) => {
     setLoading(true);
-    setError(null);
     const validChains = ['Ethereum', 'Polygon', 'Aptos'] as const;
     type ValidChain = typeof validChains[number];
     if (!validChains.includes(chain as ValidChain)) {
-      setError('Invalid chain selected');
+      toast.error('Invalid chain selected');
+      setLoading(false);
+      return;
+    }
+    if (!address.match(/^0x[a-fA-F0-9]{40}$/) && chain !== 'Aptos') {
+      toast.error('Invalid wallet address');
       setLoading(false);
       return;
     }
@@ -71,7 +80,7 @@ const App: React.FC = () => {
         {
           accountAddress: address,
           fromDate: '2025-01-01T00:00:00+00:00',
-          toDate: '2025-06-10T00:00:00+00:00',
+          toDate: '2025-06-24T00:00:00+00:00',
         },
         {
           headers: { 'X-API-KEY': process.env.REACT_APP_NODIT_API_KEY },
@@ -84,7 +93,7 @@ const App: React.FC = () => {
       );
       */
 
-      // Mock data (replace with API data)
+      // Mock data
       const mockData: WalletData = {
         address,
         chain: chain as ValidChain,
@@ -95,27 +104,86 @@ const App: React.FC = () => {
       };
 
       const healthScore = calculateHealthScore(mockData);
-      setHealthScore(healthScore);
+      setHealthScores((prev) => [...prev, { address, chain, score: healthScore }]);
     } catch (error) {
       console.error('Error fetching wallet data:', error);
-      setError('Failed to fetch wallet data. Please try again.');
+      toast.error('Failed to fetch wallet data. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  const generatePDF = (score: HealthScore, address: string, chain: string) => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text('MultiChain HealthAI Report', 20, 20);
+    doc.setFontSize(12);
+    doc.text(`Wallet: ${address}`, 20, 30);
+    doc.text(`Chain: ${chain}`, 20, 40);
+    doc.text(`Overall Score: ${score.overallScore}/100`, 20, 50);
+    Object.entries(score.explanations).forEach(([key, value], i) => {
+      doc.text(`${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`, 20, 60 + i * 10);
+    });
+    doc.save(`health_report_${address}_${chain}.pdf`);
+  };
+
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => !prev);
+    document.documentElement.classList.toggle('dark');
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 py-10">
-      <h1 className="text-4xl font-bold text-center text-gray-800 mb-10">MultiChain HealthAI</h1>
-      <WalletInput onSubmit={fetchWalletData} />
-      {loading && <p className="text-center mt-4 text-blue-600">Loading...</p>}
-      {error && <p className="text-center mt-4 text-red-600">{error}</p>}
-      {healthScore && (
-        <>
-          <HealthScoreCard score={healthScore} />
-          <ExplanationSection explanations={healthScore.explanations} />
-        </>
-      )}
+    <div className={`min-h-screen py-10 transition-colors duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
+      <div className="max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-10">
+          <h1 className="text-4xl font-bold text-center text-gray-800 dark:text-gray-100">MultiChain HealthAI</h1>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity, repeatType: 'loop' }}
+            onClick={toggleDarkMode}
+            className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-800 dark:text-gray-100"
+          >
+            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </motion.button>
+        </div>
+        <WalletInput onSubmit={fetchWalletData} />
+        {loading && (
+          <div className="text-center mt-4">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600 dark:border-blue-400"></div>
+          </div>
+        )}
+        {healthScores.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            {healthScores.map(({ address, chain, score }, index) => (
+              <div key={`${address}-${chain}-${index}`}>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    Wallet: {address.slice(0, 6)}...{address.slice(-4)} ({chain})
+                  </h2>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity, repeatType: 'loop' }}
+                    onClick={() => generatePDF(score, address, chain)}
+                    className="bg-green-600 text-white p-2 rounded-md dark:bg-green-500"
+                  >
+                    Download Report
+                  </motion.button>
+                </div>
+                <HealthScoreCard score={score} />
+                <ExplanationSection explanations={score.explanations} />
+              </div>
+            ))}
+          </div>
+        )}
+        {healthScores.length > 0 && (
+          <HealthPendulum overallScore={healthScores[healthScores.length - 1].score.overallScore} />
+        )}
+        <ToastContainer position="top-right" autoClose={3000} theme={darkMode ? 'dark' : 'light'} />
+      </div>
     </div>
   );
 };
