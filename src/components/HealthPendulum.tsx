@@ -2,21 +2,21 @@ import React from 'react';
 import { motion, Variants, Easing } from 'framer-motion';
 
 interface HealthPendulumProps {
-  overallScore: number; // Overall health score to determine pendulum speed
+  overallScore: number;
 }
 
 const HealthPendulum: React.FC<HealthPendulumProps> = ({ overallScore }) => {
-  // Calculate pendulum speed: faster for higher scores (0.5s to 2s duration)
-  const pendulumSpeed = 2 - (overallScore / 100) * 1.5; // Maps score 0-100 to duration 2s-0.5s
+  const pendulumSpeed = 2 - (overallScore / 100) * 1.5;
+  const pendulumColor = overallScore > 80 ? '#22C55E' : overallScore > 50 ? '#F59E0B' : '#EF4444';
 
   const pendulumVariants: Variants = {
     swing: {
-      rotate: [-30, 30], // Swing between -30 and 30 degrees
+      rotate: [-30, 30],
       transition: {
         repeat: Infinity,
         repeatType: 'reverse' as const,
         duration: pendulumSpeed,
-        ease: 'easeInOut' as Easing, // Explicitly type as Easing
+        ease: 'easeInOut' as Easing,
       },
     },
   };
@@ -30,26 +30,23 @@ const HealthPendulum: React.FC<HealthPendulumProps> = ({ overallScore }) => {
         transition={{ duration: 0.5 }}
       >
         <svg width="100%" height="100%" viewBox="0 0 100 100">
-          {/* Pivot point (circle) */}
           <circle cx="50" cy="20" r="5" fill="#4B5563" className="dark:fill-gray-300" />
-          {/* Pendulum rod */}
           <motion.line
             x1="50"
             y1="20"
             x2="50"
             y2="80"
-            stroke="#3B82F6"
+            stroke={pendulumColor}
             strokeWidth="4"
             variants={pendulumVariants}
             animate="swing"
             className="dark:stroke-blue-400"
           />
-          {/* Pendulum weight (circle) */}
           <motion.circle
             cx="50"
             cy="80"
             r="10"
-            fill="#3B82F6"
+            fill={pendulumColor}
             variants={pendulumVariants}
             animate="swing"
             className="dark:fill-blue-400"

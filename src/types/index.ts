@@ -1,7 +1,7 @@
 export interface WalletData {
   address: string;
   chain: 'Ethereum' | 'Polygon' | 'Aptos';
-  activity: { transactionCount: number; lastActive: string };
+  activity: { transactionCount: number; lastActive: string; recentTransactions: { timestamp: string; value: number }[] };
   diversification: { tokenCount: number; assetTypes: string[]; nftCollections?: string[]; rarityScore?: number };
   profitability: { totalProfit: number; roi: number };
   security: { suspiciousActivity: boolean; multiSig: boolean };
@@ -14,14 +14,13 @@ export interface HealthScore {
   diversificationScore: number;
   profitabilityScore: number;
   securityScore: number;
-  deFiScore?: number;
-  nftScore?: number;
+  riskScore: number;
   explanations: {
     activity: string;
     diversification: string;
     profitability: string;
     security: string;
-    deFi?: string;
-    nft?: string;
+    risk: string;
+    mcpInsights: string;
   };
 }

@@ -30,8 +30,20 @@ const App: React.FC = () => {
 
     const securityScore = (data.security.multiSig ? 50 : 0) + (data.security.suspiciousActivity ? 0 : 50);
 
+    const riskScore = data.security.suspiciousActivity
+      ? 20
+      : tokenCount < 3
+      ? 40
+      : daysSinceLastActive > 90
+      ? 60
+      : 80;
+
     const overallScore = Math.round(
-      activityScore * 0.3 + diversificationScore * 0.25 + profitabilityScore * 0.25 + securityScore * 0.2
+      activityScore * 0.25 +
+      diversificationScore * 0.25 +
+      profitabilityScore * 0.25 +
+      securityScore * 0.15 +
+      riskScore * 0.1
     );
 
     const explanations = {
@@ -45,6 +57,14 @@ const App: React.FC = () => {
       security: `${data.security.multiSig ? 'Multi-signature wallet enhances' : 'Lack of multi-sig reduces'} security; ${
         data.security.suspiciousActivity ? 'suspicious activity detected' : 'no suspicious activity.'
       }`,
+      risk: `Risk score of ${riskScore}/100 indicates ${
+        riskScore > 80 ? 'low' : riskScore > 50 ? 'moderate' : 'high'
+      } risk based on activity and diversification.`,
+      mcpInsights: `Wallet shows ${
+        transactionCount > 100 ? 'frequent' : 'occasional'
+      } activity with ${data.diversification.assetTypes.join(', ')} assets. Recent transactions suggest ${
+        data.activity.recentTransactions.length > 5 ? 'active trading' : 'stable holdings'
+      }.`, // Simulated MCP output
     };
 
     return {
@@ -53,6 +73,7 @@ const App: React.FC = () => {
       diversificationScore: Math.round(diversificationScore),
       profitabilityScore: Math.round(profitabilityScore),
       securityScore: Math.round(securityScore),
+      riskScore: Math.round(riskScore),
       explanations,
     };
   };
@@ -73,37 +94,57 @@ const App: React.FC = () => {
     }
 
     try {
-      // Nodit Web3 Data API call (uncomment with valid API key)
-      /*
-      const response = await axios.post(
+      const apiKey = process.env.REACT_APP_NODIT_API_KEY;
+      if (!apiKey) {
+        throw new Error('Nodit API key is missing');
+      }
+
+      // Fetch token balances
+      const balanceResponse = await axios.post(
+        `https://web3.nodit.io/v1/${chain.toLowerCase()}/mainnet/token/getTokenBalances`,
+        { accountAddress: address },
+        { headers: { 'X-API-KEY': apiKey } }
+      );
+
+      // Fetch transaction history
+      const transactionResponse = await axios.post(
         `https://web3.nodit.io/v1/${chain.toLowerCase()}/mainnet/token/getTokenTransfersByAccount`,
         {
           accountAddress: address,
           fromDate: '2025-01-01T00:00:00+00:00',
-          toDate: '2025-06-24T00:00:00+00:00',
+          toDate: '2025-07-13T00:00:00+00:00',
         },
-        {
-          headers: { 'X-API-KEY': process.env.REACT_APP_NODIT_API_KEY },
-        }
+        { headers: { 'X-API-KEY': apiKey } }
       );
-      const balanceResponse = await axios.post(
-        `https://web3.nodit.io/v1/${chain.toLowerCase()}/mainnet/token/getTokenBalances`,
-        { accountAddress: address },
-        { headers: { 'X-API-KEY': process.env.REACT_APP_NODIT_API_KEY } }
-      );
-      */
 
-      // Mock data
-      const mockData: WalletData = {
+      const walletData: WalletData = {
         address,
         chain: chain as ValidChain,
-        activity: { transactionCount: 150, lastActive: '2025-06-09' },
-        diversification: { tokenCount: 5, assetTypes: ['ERC-20', 'NFT'] },
-        profitability: { totalProfit: 1200, roi: 15 },
-        security: { suspiciousActivity: false, multiSig: true },
+        activity: {
+          transactionCount: transactionResponse.data.result.length,
+          lastActive: transactionResponse.data.result[0]?.timestamp || '2025-07-01',
+          recentTransactions: transactionResponse.data.result.slice(0, 10).map((tx: any) => ({
+            timestamp: tx.timestamp,
+            value: tx.value / 1e18, // Convert from wei
+          })),
+        },
+        diversification: {
+          tokenCount: balanceResponse.data.result.length,
+          assetTypes: balanceResponse.data.result.map((token: any) =>
+            token.type === 'ERC-20' ? 'ERC-20' : 'NFT'
+          ),
+        },
+        profitability: {
+          totalProfit: 1200, // Placeholder (requires market data API)
+          roi: 15, // Placeholder
+        },
+        security: {
+          suspiciousActivity: transactionResponse.data.result.some((tx: any) => tx.suspicious),
+          multiSig: false, // Placeholder (requires contract data)
+        },
       };
 
-      const healthScore = calculateHealthScore(mockData);
+      const healthScore = calculateHealthScore(walletData);
       setHealthScores((prev) => [...prev, { address, chain, score: healthScore }]);
     } catch (error) {
       console.error('Error fetching wallet data:', error);
@@ -173,7 +214,7 @@ const App: React.FC = () => {
                     Download Report
                   </motion.button>
                 </div>
-                <HealthScoreCard score={score} />
+                <HealthScoreCard score={score} address={address} chain={chain} />
                 <ExplanationSection explanations={score.explanations} />
               </div>
             ))}
